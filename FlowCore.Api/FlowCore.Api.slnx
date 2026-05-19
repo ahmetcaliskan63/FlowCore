@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="../FlowCore.Application/FlowCore.Application.csproj" />
+  <Project Path="../FlowCore.Core/FlowCore.Core.csproj" />
+  <Project Path="../FlowCore.Infrastructure/FlowCore.Infrastructure.csproj" />
+  <Project Path="FlowCore.Api.csproj" />
+</Solution>
