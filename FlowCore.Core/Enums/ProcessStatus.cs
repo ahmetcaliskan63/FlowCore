@@ -1,13 +1,13 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
 namespace FlowCore.Core.Enums
 {
-    public enum LeaveStatus
+    public enum ProcessStatus
     {
         OnayBekliyor = 1,
         Onaylandi = 2,
-        Reddedildi = 3,
+        Reddedildi = 3
     }
 }
