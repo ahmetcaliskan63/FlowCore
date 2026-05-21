@@ -4,7 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using FlowCore.Core.Common;
 using FlowCore.Core.Interfaces;
-using FlowCore.Infrastructure.Context; // AppDbContext burada olduğu için ekledik
+using FlowCore.Infrastructure.Context;
 using Microsoft.EntityFrameworkCore;
 
 namespace FlowCore.Infrastructure
