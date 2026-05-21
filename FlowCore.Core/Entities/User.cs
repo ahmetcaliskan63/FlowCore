@@ -1,7 +1,4 @@
 using FlowCore.Core.Common;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace FlowCore.Core.Entities
 {
@@ -15,5 +12,7 @@ namespace FlowCore.Core.Entities
         public Guid? DepartmentId { get; set; }
         public virtual Department? Department { get; set; }
         public bool IsActive { get; set; } = true;
+        public int TotalLeaveCredits { get; set; }
+        public int RemainingLeaveCredits { get; set; }
     }
 }
