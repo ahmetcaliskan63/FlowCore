@@ -30,12 +30,7 @@ namespace FlowCore.Infrastructure.Context
         {
             base.OnModelCreating(modelBuilder);
 
-            modelBuilder.Entity<User>(Entity =>
-            {
-                Entity.Property(u => u.FullName).IsRequired().HasMaxLength(50);
-                Entity.Property(u => u.Email).IsRequired().HasMaxLength(100);
-                Entity.HasIndex(u => u.Email).IsUnique();
-            });
+     
         }
 
     }
