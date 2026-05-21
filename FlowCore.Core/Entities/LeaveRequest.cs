@@ -1,8 +1,5 @@
 using FlowCore.Core.Common;
 using FlowCore.Core.Enums;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace FlowCore.Core.Entities
 {
