@@ -1,4 +1,5 @@
-﻿using FlowCore.Infrastructure.Context;
+﻿using FlowCore.Core.Interfaces;
+using FlowCore.Infrastructure.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -11,6 +12,7 @@ namespace FlowCore.Infrastructure
         {
             services.AddDbContext<AppDbContext>(options =>
                 options.UseSqlServer(configuration.GetConnectionString("DefaultConnection")));
+            services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
             return services;
         }
     }
