@@ -25,7 +25,6 @@ namespace FlowCore.Application.Features.LeaveRequests.Queries
                 .ThenInclude(u => u!.Department)
                 .OrderByDescending(lr => lr.CreatedAt)
                 .ToListAsync(cancellationToken);
-
             return leaveRequests.Select(lr => new LeaveRequestDto
             {
                 Id = lr.Id,
@@ -34,7 +33,7 @@ namespace FlowCore.Application.Features.LeaveRequests.Queries
                 DepartmentName = lr.User?.Department?.DepartmentName ?? "Departman Atanmamış",
                 StartDate = lr.StartDate,
                 EndDate = lr.EndDate,
-                TotalDays = (lr.EndDate - lr.StartDate).Days,
+                TotalDays = (lr.EndDate - lr.StartDate).Days + 1,
                 Reason = lr.Reason,
                 Status = lr.Status.ToString(),
                 CreatedAt = lr.CreatedAt
