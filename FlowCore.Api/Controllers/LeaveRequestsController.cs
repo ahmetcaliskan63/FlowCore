@@ -28,7 +28,37 @@ namespace FlowCore.Api.Controllers
         public async Task<IActionResult> Create([FromBody] CreateLeaveRequestCommand command)
         {
             var result = await _mediator.Send(command);
+            return CreatedAtAction(nameof(Get), new { id = result }, result);
+        }
+        [HttpGet("{id}")]
+        public async Task<IActionResult> Get([FromRoute] Guid id)
+        {
+            var query = new GetLeaveRequestByIdQuery { Id = id };
+            var result = await _mediator.Send(query);
+            if(result== null)
+            {
+                return NotFound();
+            }
             return Ok(result);
+        }
+        [HttpPut("{id}")]
+        public async Task<IActionResult> Update([FromRoute] Guid id, [FromBody] UpdateLeaveRequestCommand command)
+        {
+            if (id != command.Id)
+            {
+                return BadRequest("ID uyuşmazlığı.");
+            }
+            command.Id = id;
+            var result = await _mediator.Send(command);
+
+            return Ok(result);
+        }
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> Delete([FromRoute] Guid id)
+        {
+            var command = new DeleteLeaveRequestCommand { Id = id }; 
+            var result = await _mediator.Send(command);
+            return NoContent();
         }
     }
 }
