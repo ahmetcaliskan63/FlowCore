@@ -1,5 +1,6 @@
 ﻿using FlowCore.Application.Features.Approvals.Commands;
 using FlowCore.Application.Features.Approvals.DTOs;
+using FlowCore.Application.Features.Approvals.Queries;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -15,6 +16,20 @@ namespace FlowCore.Api.Controllers
         public ApprovalsController(IMediator mediator)
         {
             _mediator = mediator;
+        }
+        [HttpGet("GetAllLeaveRequests")]
+        public async Task<IActionResult> GetAllLeaveRequests() {
+
+            var query = new GetAllUserLeaveRequestsQuery();
+            var result = await _mediator.Send(query);
+            return Ok(result);
+        }
+        [HttpGet("GetLeaveRequestsByUserId/{userId}")]
+        public async Task<IActionResult> GetLeaveRequestsByUserId(Guid userId)
+        {
+            var query = new GetLeaveRequestsByUserIdQuery { UserId = userId };
+            var result = await _mediator.Send(query);
+            return Ok(result);
         }
 
         [HttpPost("CreateLeaveApproval")]
