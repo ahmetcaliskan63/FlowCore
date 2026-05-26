@@ -4,11 +4,6 @@ using FlowCore.Core.Enums;
 using FlowCore.Core.Interfaces;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace FlowCore.Application.Features.Approvals.Commands
 {
@@ -36,37 +31,70 @@ namespace FlowCore.Application.Features.Approvals.Commands
             _userRepository = userRepository;
         }
 
-        async Task<LeaveApprovalResultDto> IRequestHandler<ApproveLeaveRequestCommand, LeaveApprovalResultDto>.Handle(ApproveLeaveRequestCommand request, CancellationToken cancellationToken)
+        public async Task<LeaveApprovalResultDto> Handle(ApproveLeaveRequestCommand request, CancellationToken cancellationToken)
         {
-            var leaveRequest = await _leaveRequestRepository.Table.FirstOrDefaultAsync(lr => lr.Id == request.LeaveRequestId, cancellationToken);
+            var leaveRequest = await _leaveRequestRepository.Table
+                .FirstOrDefaultAsync(lr => lr.Id == request.LeaveRequestId, cancellationToken);
+
             if (leaveRequest == null)
             {
                 throw new Exception("Onaylanmak istenen izin talebi sistemde bulunamadı.");
             }
-            if(request.ApproverUserId == leaveRequest.UserId)
+
+            if (request.ApproverUserId == leaveRequest.UserId)
             {
                 throw new Exception("Personel kendi oluşturduğu izin talebini onaylayamaz veya reddedemez!");
             }
 
-            if (leaveRequest.Status != ProcessStatus.OnayBekliyor)
+            if (leaveRequest.Status != ProcessStatus.OnayBekliyor && leaveRequest.Status != ProcessStatus.YoneticiOnayladi)
             {
-                throw new Exception("Bu izin talebi daha önce zaten sonuçlandırılmış.");
+                throw new Exception("Bu izin talebi daha önce zaten kesin olarak sonuçlandırılmış.");
             }
+
             var approverUser = await _userRepository.Table
                 .Include(u => u.Role)
                 .FirstOrDefaultAsync(u => u.Id == request.ApproverUserId, cancellationToken);
-            if(approverUser == null)
+
+            if (approverUser == null)
             {
-                throw new Exception("Onaylama işlemini yapan yönetici sistemde bulunamadı.");
+                throw new Exception("Onaylama işlemini yapan kullanıcı sistemde bulunamadı.");
             }
-            if(approverUser.Role?.Name != "Yönetici" && approverUser.Role?.Name != "İK")
-    {
-                throw new Exception("Bu işlemi gerçekleştirmek için yetkiniz bulunmamaktadır. Sadece Yönetici veya İK onay verebilir.");
+
+            if (approverUser.Role?.Name != "Manager" && approverUser.Role?.Name != "HR")
+            {
+                throw new Exception("Bu işlemi gerçekleştirirmek için yetkiniz bulunmamaktadır. Sadece Manager veya HR onay verebilir.");
             }
-            var finalStatus = request.IsApproved ? ProcessStatus.Onaylandi : ProcessStatus.Reddedildi;
+
+            if (leaveRequest.Status == ProcessStatus.OnayBekliyor && approverUser.Role?.Name == "HR")
+            {
+                throw new Exception("Bu izin talebi henüz departman yöneticisi tarafından onaylanmamış. Önce Manager'ın onaylaması gerekir.");
+            }
+
+            if (leaveRequest.Status == ProcessStatus.YoneticiOnayladi && approverUser.Role?.Name == "Manager")
+            {
+                throw new Exception("Departman yöneticisi (Manager) bu izne zaten onay vermiş. Şu an HR onayı bekleniyor.");
+            }
+
+            ProcessStatus finalStatus;
+            if (!request.IsApproved)
+            {
+                finalStatus = ProcessStatus.Reddedildi;
+            }
+            else
+            {
+                if (approverUser.Role?.Name == "Manager")
+                {
+                    finalStatus = ProcessStatus.YoneticiOnayladi;
+                }
+                else
+                {
+                    finalStatus = ProcessStatus.Onaylandi;
+                }
+            }
 
             var user = await _userRepository.Table
                 .FirstOrDefaultAsync(u => u.Id == leaveRequest.UserId, cancellationToken);
+
             if (user == null)
             {
                 throw new Exception("İzin talebinde bulunan kullanıcı sistemde bulunamadı.");
@@ -74,13 +102,12 @@ namespace FlowCore.Application.Features.Approvals.Commands
 
             int leaveDays = (leaveRequest.EndDate.Date - leaveRequest.StartDate.Date).Days + 1;
 
-            if (request.IsApproved)
+            if (finalStatus == ProcessStatus.Onaylandi)
             {
                 if (user.RemainingLeaveCredits < leaveDays)
                 {
                     throw new Exception("Kullanıcının kalan izin kredisi yetersiz!");
                 }
-
                 user.RemainingLeaveCredits -= leaveDays;
                 await _userRepository.UpdateAsync(user);
             }
@@ -108,7 +135,7 @@ namespace FlowCore.Application.Features.Approvals.Commands
                 LeaveRequestId = leaveRequest.Id,
                 NewStatus = finalStatus.ToString(),
                 RemainingLeaveCredits = user.RemainingLeaveCredits,
-                Message = request.IsApproved ? "İzin talebi onaylandı." : "İzin talebi reddedildi.",
+                Message = finalStatus == ProcessStatus.Reddedildi ? "İzin talebi reddedildi." : (finalStatus == ProcessStatus.YoneticiOnayladi ? "İzin talebi yönetici tarafından onaylandı, İK onayı bekleniyor." : "İzin talebi İK tarafından onaylandı ve kesinleşti."),
                 ActionAt = approvalLog.CreatedAt
             };
         }
