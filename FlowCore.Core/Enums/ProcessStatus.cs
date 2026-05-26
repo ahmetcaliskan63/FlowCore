@@ -7,7 +7,8 @@ namespace FlowCore.Core.Enums
     public enum ProcessStatus
     {
         OnayBekliyor = 1,
-        Onaylandi = 2,
-        Reddedildi = 3
+        YoneticiOnayladi = 2,
+        Onaylandi = 3,
+        Reddedildi = 4
     }
 }
