@@ -9,8 +9,6 @@ using System.Threading.Tasks;
 
 namespace FlowCore.Application.Features.Users.Commands
 {
-    // 1. ADIM: Frontend'den (arayüzden) sadece gerekli kurumsal bilgileri topluyoruz.
-    // Şifre veya ID istemiyoruz, onları backend'de biz yöneteceğiz.
     public class CreateUserCommand : IRequest<UserDto>
     {
         public string FullName { get; set; } = string.Empty;
