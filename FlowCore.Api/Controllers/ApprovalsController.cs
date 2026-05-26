@@ -17,14 +17,14 @@ namespace FlowCore.Api.Controllers
         {
             _mediator = mediator;
         }
-        [HttpGet("GetAllLeaveRequests")]
+        [HttpGet]
         public async Task<IActionResult> GetAllLeaveRequests() {
 
             var query = new GetAllUserLeaveRequestsQuery();
             var result = await _mediator.Send(query);
             return Ok(result);
         }
-        [HttpGet("GetLeaveRequestsByUserId/{userId}")]
+        [HttpGet("userId")]
         public async Task<IActionResult> GetLeaveRequestsByUserId(Guid userId)
         {
             var query = new GetLeaveRequestsByUserIdQuery { UserId = userId };
@@ -32,7 +32,7 @@ namespace FlowCore.Api.Controllers
             return Ok(result);
         }
 
-        [HttpPost("CreateLeaveApproval")]
+        [HttpPost]
         public async Task<ActionResult<LeaveApprovalResultDto>> CreateLeaveApproval([FromBody] ApproveLeaveRequestCommand command)
         {
             var result = await _mediator.Send(command);
