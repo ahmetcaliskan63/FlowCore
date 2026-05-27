@@ -4,7 +4,8 @@ using System.Text;
 
 namespace FlowCore.Application.Features.WorkflowSteps.DTOs
 {
-    internal class WorkflowStepsDTO
+    public class WorkflowStepsDTO
     {
+        public Guid Id { get; set; }
     }
 }
