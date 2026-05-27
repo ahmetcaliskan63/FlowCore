@@ -9,7 +9,7 @@ namespace FlowCore.Application.Features.Workflows.DTOs
         public Guid Id { get; set; }
 
         public string WorkflowName { get; set; } = string.Empty;
-        public string Type { get; set; }
+        public string Type { get; set; } = string.Empty;
         public bool IsActive { get; set; }
     }
 }
