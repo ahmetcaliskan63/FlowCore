@@ -8,10 +8,6 @@ namespace FlowCore.Application.Features.WorkflowSteps.Queries
 {
     public class GetAllWorkflowStepsQuery : IRequest<List<WorkflowStepsDTO>>
     {
-        /// <summary>
-        /// Belirli bir iş akışına ait adımları listelemek için opsiyonel filtre.
-        /// Null bırakılırsa tüm aktif adımlar döner.
-        /// </summary>
         public Guid? WorkflowId { get; set; }
     }
 
