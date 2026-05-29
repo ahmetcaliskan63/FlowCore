@@ -1,4 +1,4 @@
-﻿using FlowCore.Core.Entities;
+using FlowCore.Core.Entities;
 using FlowCore.Core.Interfaces;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -11,6 +11,7 @@ namespace FlowCore.Application.Features.Workflows.Commands
     public class DeleteWorkflowCommand : IRequest<bool>
     {
         public Guid Id { get; set; }
+        public Guid DeletedByUserId { get; set; }
     }
     public class DeleteWorkflowCommandHandler : IRequestHandler<DeleteWorkflowCommand, bool>
     {
@@ -28,7 +29,8 @@ namespace FlowCore.Application.Features.Workflows.Commands
                 throw new Exception("Silinmek istenen aktif bir iş akışı bulunamadı.");
             }
             workflow.IsDeleted = true;
-            workflow.UpdatedAt = DateTime.UtcNow;
+            workflow.DeletedAt = DateTime.UtcNow;
+            workflow.DeletedBy = request.DeletedByUserId;
             await _workflowRepository.UpdateAsync(workflow);
             return true;
         }
