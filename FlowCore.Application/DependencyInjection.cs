@@ -1,5 +1,6 @@
-﻿using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using System.Reflection;
 
 namespace FlowCore.Application
 {
@@ -7,7 +8,8 @@ namespace FlowCore.Application
     {
         public static IServiceCollection AddApplicationServices(this IServiceCollection service, IConfiguration configuration)
         {
-            service.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(DependencyInjection).Assembly));
+            service.AddAutoMapper(cfg => cfg.AddMaps(Assembly.GetExecutingAssembly()));
+            service.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly()));
             return service;
         }
     }
