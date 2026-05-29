@@ -1,5 +1,7 @@
-﻿using FlowCore.Application.Features.Users.DTOs;
+using AutoMapper;
+using FlowCore.Application.Features.Users.DTOs;
 using FlowCore.Core.Entities;
+using FlowCore.Core.Exceptions;
 using FlowCore.Core.Interfaces;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -15,29 +17,45 @@ namespace FlowCore.Application.Features.Users.Commands
         public string Email { get; set; } = string.Empty;
         public Guid DepartmentId { get; set; }
         public Guid RoleId { get; set; }
+        public Guid CreatedByUserId { get; set; }
     }
 
     public class CreateUserCommandHandler : IRequestHandler<CreateUserCommand, UserDto>
     {
         private readonly IRepository<User> _userRepository;
         private readonly IRepository<Department> _departmentRepository;
+        private IRepository<Role> _roleRepository;
+        readonly IMapper _mapper;
 
-        public CreateUserCommandHandler(IRepository<User> userRepository, IRepository<Department> departmentRepository)
+        public CreateUserCommandHandler(IRepository<User> userRepository, IRepository<Department> departmentRepository,IMapper mapper, IRepository<Role> roleRepository)
         {
             _userRepository = userRepository;
             _departmentRepository = departmentRepository;
+            _mapper = mapper;
+            _roleRepository = roleRepository;
         }
 
         public async Task<UserDto> Handle(CreateUserCommand request, CancellationToken cancellationToken)
         {   
             var existingUser = await _userRepository.Table
-                .AnyAsync(u => u.Email == request.Email, cancellationToken);
+                .AnyAsync(u => u.Email.ToLower() == request.Email.ToLower() && !u.IsDeleted, cancellationToken);
 
             if (existingUser)
             {
-                throw new Exception("Bu e-posta adresi sistemde zaten kayıtlı.");
+                throw new BusinessException("Bu e-posta adresi sistemde zaten kayıtlı.");
             }
-            var department = await _departmentRepository.GetByIdAsync(request.DepartmentId);
+            var departmentExists = await _departmentRepository.Table
+                .AnyAsync(d=> d.Id == request.DepartmentId && !d.IsDeleted, cancellationToken);
+            if (!departmentExists)
+            {
+                throw new BusinessException("Seçilen departman sistemde bulunamadı veya silinmiş");
+            }
+            var roleExists = await _roleRepository.Table
+                .AnyAsync(r => r.Id == request.RoleId && !r.IsDeleted, cancellationToken);
+            if (!roleExists)
+            {
+                throw new BusinessException("Seçilen role sistemde bulunamadı veya silinmiş");
+            }
 
             string randomPassword = Guid.NewGuid().ToString().Substring(0, 8);
             int defaultLeaveCredits = 14;
@@ -45,26 +63,20 @@ namespace FlowCore.Application.Features.Users.Commands
             {
                 Id = Guid.NewGuid(),
                 FullName = request.FullName,
-                Email = request.Email,
+                Email = request.Email.ToLower(),
                 DepartmentId = request.DepartmentId,
                 RoleId = request.RoleId,
                 Password = randomPassword,
                 TotalLeaveCredits = defaultLeaveCredits,
                 RemainingLeaveCredits = defaultLeaveCredits,
                 IsActive = true,
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTime.UtcNow,
+                CreatedBy = request.CreatedByUserId,
+                IsDeleted = false
             };
             await _userRepository.AddAsync(user);
             Console.WriteLine($"[E-Posta Simülasyonu] {user.FullName} için şifre üretildi: {randomPassword}");
-            return new UserDto
-            {
-                Id = user.Id,
-                FullName = user.FullName,
-                Email = user.Email,
-                DepartmentName = department?.DepartmentName ?? "Departman Atanmadı",
-                TotalLeaveCredits = user.TotalLeaveCredits,
-                RemainingLeaveCredits = user.RemainingLeaveCredits
-            };
+            return _mapper.Map<UserDto>(user);
         }
     }
 }
