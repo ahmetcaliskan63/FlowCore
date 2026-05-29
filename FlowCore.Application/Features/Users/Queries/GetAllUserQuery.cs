@@ -1,43 +1,34 @@
-﻿using FlowCore.Application.Features.Users.DTOs;
+using AutoMapper;
+using FlowCore.Application.Features.Users.DTOs;
 using FlowCore.Core.Entities;
 using FlowCore.Core.Interfaces;
+using MediatR;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace FlowCore.Application.Features.Users.Queries
 {
-    public class GetAllUserQuery : MediatR.IRequest<List<UserDto>>
+    public class GetAllUserQuery : IRequest<List<UserDto>>
     {
     }
 
-    public class GetAllUserQueryHandler : MediatR.IRequestHandler<GetAllUserQuery, List<UserDto>>
+    public class GetAllUserQueryHandler : IRequestHandler<GetAllUserQuery, List<UserDto>>
     {
         private readonly IRepository<User> _userRepository;
-        public GetAllUserQueryHandler(IRepository<User> userRepository)
+        private readonly IMapper _mapper;
+
+        public GetAllUserQueryHandler(IRepository<User> userRepository, IMapper mapper)
         {
             _userRepository = userRepository;
+            _mapper = mapper;
         }
+
         public async Task<List<UserDto>> Handle(GetAllUserQuery request, CancellationToken cancellationToken)
         {
-            var user = await _userRepository.Table
-                .Include(u => u.Department)
+            return await _userRepository.Table
+                .Where(u=> !u.IsDeleted && u.IsActive)
+                .OrderBy(u => u.FullName)
+                .Select(u => _mapper.Map<UserDto>(u))
                 .ToListAsync(cancellationToken);
-            if(user == null)
-            {
-                throw new Exception("Kullanıcılar bulunamadı.");
-            }
-            var UserRequests = await _userRepository.GetAllAsync();
-            return UserRequests.Select(u => new UserDto
-            {
-                Id = u.Id,
-                FullName = u.FullName,
-                Email = u.Email,
-                DepartmentName = u.Department?.DepartmentName ?? "Departman Atanmamış",
-                TotalLeaveCredits = u.TotalLeaveCredits,
-                RemainingLeaveCredits = u.RemainingLeaveCredits
-            }).ToList();
         }
     }
 }
