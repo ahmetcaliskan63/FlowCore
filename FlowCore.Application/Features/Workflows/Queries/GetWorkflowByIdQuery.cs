@@ -1,4 +1,4 @@
-﻿using FlowCore.Application.Features.Workflows.DTOs;
+using FlowCore.Application.Features.Workflows.DTOs;
 using FlowCore.Core.Entities;
 using FlowCore.Core.Interfaces;
 using MediatR;
@@ -21,8 +21,8 @@ namespace FlowCore.Application.Features.Workflows.Queries
         {
             var workflow = await _workflowRepository.Table
                 .AsNoTracking()
-                .FirstOrDefaultAsync(w => w.Id == request.Id, cancellationToken);
-            if (workflow == null || workflow.IsDeleted)
+                .FirstOrDefaultAsync(w => w.Id == request.Id && !w.IsDeleted, cancellationToken);
+            if (workflow == null)
             {
                 throw new Exception("İş akışı bulunamadı.");
             }
