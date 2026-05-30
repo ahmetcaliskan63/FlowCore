@@ -1,29 +1,44 @@
-﻿using FlowCore.Core.Entities;
+using FlowCore.Core.Entities;
+using FlowCore.Core.Enums;
 using FlowCore.Core.Interfaces;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 
 namespace FlowCore.Application.Features.LeaveRequests.Commands
 {
-    public class DeleteLeaveRequestCommand : IRequest<Guid>
+    public class DeleteLeaveRequestCommand : IRequest<bool>
     {
         public Guid Id { get; set; }
+        public Guid DeletedByUserId { get; set; }
     }
-    public class DeleteLeaveRequestCommandHandler : IRequestHandler<DeleteLeaveRequestCommand, Guid>
+
+    public class DeleteLeaveRequestCommandHandler : IRequestHandler<DeleteLeaveRequestCommand, bool>
     {
         private readonly IRepository<LeaveRequest> _leaveRequestRepository;
+
         public DeleteLeaveRequestCommandHandler(IRepository<LeaveRequest> leaveRequestRepository)
         {
             _leaveRequestRepository = leaveRequestRepository;
         }
 
-        public async Task<Guid> Handle(DeleteLeaveRequestCommand request, CancellationToken cancellationToken)
+        public async Task<bool> Handle(DeleteLeaveRequestCommand request, CancellationToken cancellationToken)
         {
-            var leaveRequest = await _leaveRequestRepository.GetByIdAsync(request.Id);
-            if (leaveRequest == null) throw new InvalidOperationException("İzin talebi bulunamadı");
+            var leaveRequest = await _leaveRequestRepository.Table
+                .FirstOrDefaultAsync(lr => lr.Id == request.Id && !lr.IsDeleted, cancellationToken);
 
-            await _leaveRequestRepository.DeleteAsync(leaveRequest);
+            if (leaveRequest == null)
+                throw new KeyNotFoundException($"'{request.Id}' ID'li aktif bir izin talebi bulunamadı.");
 
-            return leaveRequest.Id;
+            if (leaveRequest.Status != ProcessStatus.OnayBekliyor)
+                throw new InvalidOperationException("Yalnızca 'Onay Bekliyor' durumundaki izin talepleri silinebilir.");
+
+            leaveRequest.IsDeleted = true;
+            leaveRequest.DeletedAt = DateTime.UtcNow;
+            leaveRequest.DeletedBy = request.DeletedByUserId;
+
+            await _leaveRequestRepository.UpdateAsync(leaveRequest);
+
+            return true;
         }
     }
 }
