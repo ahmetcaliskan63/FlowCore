@@ -1,3 +1,5 @@
+using AutoMapper;
+using AutoMapper.QueryableExtensions;
 using FlowCore.Application.Features.Users.DTOs;
 using FlowCore.Core.Entities;
 using FlowCore.Core.Interfaces;
@@ -14,30 +16,23 @@ namespace FlowCore.Application.Features.Users.Queries
     public class GetUserByIdQueryHandler : IRequestHandler<GetUserByIdQuery, UserDto>
     {
         private readonly IRepository<User> _userRepository;
+        private readonly IMapper _mapper;
 
-        public GetUserByIdQueryHandler(IRepository<User> userRepository)
+        public GetUserByIdQueryHandler(IRepository<User> userRepository, IMapper mapper)
         {
             _userRepository = userRepository;
+            _mapper = mapper;
         }
 
         public async Task<UserDto> Handle(GetUserByIdQuery request, CancellationToken cancellationToken)
         {
             var user = await _userRepository.Table
-                .Include(u => u.Department)
-                .FirstOrDefaultAsync(u => u.Id == request.Id && !u.IsDeleted, cancellationToken);
-
+                .Where(u => u.Id == request.Id && !u.IsDeleted && u.IsActive)
+                .ProjectTo<UserDto>(_mapper.ConfigurationProvider)
+                .FirstOrDefaultAsync(cancellationToken);
             if (user == null)
                 throw new KeyNotFoundException($"'{request.Id}' ID'li aktif bir kullanıcı bulunamadı.");
-
-            return new UserDto
-            {
-                Id = user.Id,
-                FullName = user.FullName,
-                Email = user.Email,
-                DepartmentName = user.Department?.DepartmentName ?? "Departman Atanmamış",
-                TotalLeaveCredits = user.TotalLeaveCredits,
-                RemainingLeaveCredits = user.RemainingLeaveCredits
-            };
+            return user;
         }
     }
 }
