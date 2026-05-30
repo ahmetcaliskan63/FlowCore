@@ -1,4 +1,4 @@
-﻿using FlowCore.Application.Features.LeaveRequests.DTOs;
+using FlowCore.Application.Features.LeaveRequests.DTOs;
 using Microsoft.EntityFrameworkCore;
 using FlowCore.Core.Entities;
 using FlowCore.Core.Interfaces;
@@ -21,6 +21,7 @@ namespace FlowCore.Application.Features.LeaveRequests.Queries
         public async Task<List<LeaveRequestDto>> Handle(GetAllLeaveRequestsQuery request, CancellationToken cancellationToken)
         {
             var leaveRequests = await _leaveRequestRepository.Table
+                .Where(lr => !lr.IsDeleted)
                 .Include(lr => lr.User)
                 .ThenInclude(u => u!.Department)
                 .OrderByDescending(lr => lr.CreatedAt)
