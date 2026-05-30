@@ -1,4 +1,4 @@
-﻿using FlowCore.Application.Features.LeaveRequests.DTOs;
+using FlowCore.Application.Features.LeaveRequests.DTOs;
 using FlowCore.Core.Entities;
 using FlowCore.Core.Interfaces;
 using MediatR;
@@ -25,7 +25,7 @@ namespace FlowCore.Application.Features.LeaveRequests.Queries
         {
             var leaveRequest = await _leaveRequestRepository.Table
                 .Include(lr => lr.User).ThenInclude(u => u!.Department)
-                .FirstOrDefaultAsync(lr => lr.Id == request.Id, cancellationToken);
+                .FirstOrDefaultAsync(lr => lr.Id == request.Id && !lr.IsDeleted, cancellationToken);
             if (leaveRequest == null) return null;
 
             return new LeaveRequestDto
