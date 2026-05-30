@@ -1,4 +1,4 @@
-﻿using FlowCore.Core.Entities;
+using FlowCore.Core.Entities;
 using FlowCore.Core.Interfaces;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -33,7 +33,7 @@ namespace FlowCore.Application.Features.LeaveRequests.Commands
                 throw new Exception("Bitiş tarihi başlangıç tarihinden önce olamaz.");
             }
             var user = await _userRepository.Table
-                .FirstOrDefaultAsync(u => u.Id == request.UserId, cancellationToken);
+                .FirstOrDefaultAsync(u => u.Id == request.UserId && !u.IsDeleted, cancellationToken);
             if (user == null) {
                 throw new Exception("İzin talebi için geçerli bir kullanıcı bulunamadı.");
             }
