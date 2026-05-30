@@ -1,4 +1,5 @@
 using AutoMapper;
+using AutoMapper.QueryableExtensions;
 using FlowCore.Application.Features.Users.DTOs;
 using FlowCore.Core.Entities;
 using FlowCore.Core.Interfaces;
@@ -27,7 +28,7 @@ namespace FlowCore.Application.Features.Users.Queries
             return await _userRepository.Table
                 .Where(u=> !u.IsDeleted && u.IsActive)
                 .OrderBy(u => u.FullName)
-                .Select(u => _mapper.Map<UserDto>(u))
+                .ProjectTo<UserDto>(_mapper.ConfigurationProvider)
                 .ToListAsync(cancellationToken);
         }
     }
