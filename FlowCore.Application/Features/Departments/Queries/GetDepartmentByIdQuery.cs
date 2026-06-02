@@ -1,5 +1,8 @@
-﻿using FlowCore.Application.Features.Departments.DTOs;
+﻿using AutoMapper;
+using AutoMapper.QueryableExtensions;
+using FlowCore.Application.Features.Departments.DTOs;
 using FlowCore.Core.Entities;
+using FlowCore.Core.Exceptions;
 using FlowCore.Core.Interfaces;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -16,23 +19,21 @@ namespace FlowCore.Application.Features.Departments.Queries
     public class GetDepartmentByIdQueryHandler : IRequestHandler<GetDepartmentByIdQuery, DepartmentDto>
     {
         private readonly IRepository<Department> _departmentRepository;
-        public GetDepartmentByIdQueryHandler(IRepository<Department> departmentRepository)
+        private readonly IMapper _mapper;
+        public GetDepartmentByIdQueryHandler(IRepository<Department> departmentRepository, IMapper mapper)
         {
             _departmentRepository = departmentRepository;
+            _mapper = mapper;
         }
         public async Task<DepartmentDto> Handle(GetDepartmentByIdQuery request, CancellationToken cancellationToken)
         {
             var department = await _departmentRepository.Table
-                .FirstOrDefaultAsync(d => d.Id == request.Id && !d.IsDeleted, cancellationToken);
+                .Where(d => d.Id == request.Id && !d.IsDeleted)
+                .ProjectTo<DepartmentDto>(_mapper.ConfigurationProvider)
+                .FirstOrDefaultAsync(cancellationToken);
             if (department == null)
-            {
-                throw new Exception($"'{request.Id}'bu id'ye sahip bir departman bulunamadı.");
-            }
-            return new DepartmentDto
-            {
-                Id = department.Id,
-                DepartmentName = department.DepartmentName
-            };
+                throw new BusinessException($"'{request.Id}' ID'li bir departman bulunamadı.");
+            return department;
         }
     }
 }
