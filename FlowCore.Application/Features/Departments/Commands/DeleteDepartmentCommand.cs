@@ -1,10 +1,8 @@
 ﻿using FlowCore.Core.Entities;
+using FlowCore.Core.Exceptions;
 using FlowCore.Core.Interfaces;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace FlowCore.Application.Features.Departments.Commands
 {
@@ -27,12 +25,12 @@ namespace FlowCore.Application.Features.Departments.Commands
             var department = await _departmentRepository.Table
                 .FirstOrDefaultAsync(d => d.Id == request.Id && !d.IsDeleted,cancellationToken);
             if (department == null) {
-                throw new Exception("Silinmek istenen aktif bir departman bulunamadı.");
+                throw new BusinessException("Silinmek istenen aktif bir departman bulunamadı.");
             }
             var hasActiveUsers = await _userRepository.Table
                 .AnyAsync(u => u.DepartmentId == request.Id && !u.IsDeleted, cancellationToken);
             if(hasActiveUsers) {
-                throw new Exception("Bu departmana bağlı aktif çalışan personeller bulunmaktadır. Departmanı silebilmek için önce personellerin departmanını değiştirmeniz gerekmektedir.");
+                throw new BusinessException("Bu departmana bağlı aktif çalışan personeller bulunmaktadır. Departmanı silebilmek için önce personellerin departmanını değiştirmeniz gerekmektedir.");
             }
             department.IsDeleted = true;
             department.DeletedAt = DateTime.UtcNow;
