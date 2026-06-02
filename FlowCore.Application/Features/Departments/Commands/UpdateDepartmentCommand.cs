@@ -1,5 +1,7 @@
-﻿using FlowCore.Application.Features.Departments.DTOs;
+﻿using AutoMapper;
+using FlowCore.Application.Features.Departments.DTOs;
 using FlowCore.Core.Entities;
+using FlowCore.Core.Exceptions;
 using FlowCore.Core.Interfaces;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -18,10 +20,12 @@ namespace FlowCore.Application.Features.Departments.Commands
     public class UpdateDepartmentCommandHandler : IRequestHandler<UpdateDepartmentCommand, DepartmentDto>
     {
         private readonly IRepository<Department> _departmentRepository;
+        private readonly IMapper _mapper;   
 
-        public UpdateDepartmentCommandHandler(IRepository<Department> departmentRepository)
+        public UpdateDepartmentCommandHandler(IRepository<Department> departmentRepository, IMapper mapper)
         {
             _departmentRepository = departmentRepository;
+            _mapper = mapper;
         }
 
         public async Task<DepartmentDto> Handle(UpdateDepartmentCommand request, CancellationToken cancellationToken)
@@ -30,24 +34,20 @@ namespace FlowCore.Application.Features.Departments.Commands
                 .Table.FirstOrDefaultAsync(d => d.Id == request.Id && !d.IsDeleted, cancellationToken);
             if(department == null)
             {
-                throw new Exception("Güncellenmek istenen aktif bir departman bulunamadı.");
+                throw new BusinessException("Güncellenmek istenen aktif bir departman bulunamadı.");
             }
             var duplicateDepartment = await _departmentRepository
-                .Table.FirstOrDefaultAsync(d => d.DepartmentName == request.DepartmentName && d.Id != request.Id && !d.IsDeleted, cancellationToken);
+                .Table.FirstOrDefaultAsync(d => d.DepartmentName.ToLower() == request.DepartmentName.ToLower() && d.Id != request.Id && !d.IsDeleted, cancellationToken);
             if(duplicateDepartment != null)
             {
-                throw new Exception($"'{request.DepartmentName}' isimli bir departman sistemde zaten mevcut.");
+                throw new BusinessException($"'{request.DepartmentName}' isimli bir departman sistemde zaten mevcut.");
             }
             department.DepartmentName = request.DepartmentName;
             department.UpdatedAt = DateTime.UtcNow;
             department.UpdatedBy = request.UpdatedByUserId;
             await _departmentRepository.UpdateAsync(department);
 
-            return new DepartmentDto
-            {
-                Id = department.Id,
-                DepartmentName = department.DepartmentName
-            };
+            return _mapper.Map<DepartmentDto>(department);
         }
     }
 }
