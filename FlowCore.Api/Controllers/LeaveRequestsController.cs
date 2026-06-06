@@ -1,4 +1,4 @@
-﻿using FlowCore.Application.Features.LeaveRequests.Commands;
+using FlowCore.Application.Features.LeaveRequests.Commands;
 using FlowCore.Application.Features.LeaveRequests.Queries;
 using MediatR;
 using Microsoft.AspNetCore.Http;
@@ -24,6 +24,14 @@ namespace FlowCore.Api.Controllers
             var result = await _mediator.Send(query);
             return Ok(result);
         }
+
+        [HttpGet("user/{userId}")]
+        public async Task<IActionResult> GetByUserId([FromRoute] Guid userId)
+        {
+            var query = new GetLeaveRequestsByUserIdQuery { UserId = userId };
+            var result = await _mediator.Send(query);
+            return Ok(result);
+        }
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] CreateLeaveRequestCommand command)
         {
@@ -44,20 +52,15 @@ namespace FlowCore.Api.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> Update([FromRoute] Guid id, [FromBody] UpdateLeaveRequestCommand command)
         {
-            if (id != command.Id)
-            {
-                return BadRequest("ID uyuşmazlığı.");
-            }
             command.Id = id;
             var result = await _mediator.Send(command);
-
             return Ok(result);
         }
         [HttpDelete("{id}")]
-        public async Task<IActionResult> Delete([FromRoute] Guid id)
+        public async Task<IActionResult> Delete([FromRoute] Guid id, [FromQuery] Guid deletedByUserId)
         {
-            var command = new DeleteLeaveRequestCommand { Id = id }; 
-            var result = await _mediator.Send(command);
+            var command = new DeleteLeaveRequestCommand { Id = id, DeletedByUserId = deletedByUserId };
+            await _mediator.Send(command);
             return NoContent();
         }
     }
