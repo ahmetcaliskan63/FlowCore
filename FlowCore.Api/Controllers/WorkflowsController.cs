@@ -1,4 +1,4 @@
-﻿using MediatR;
+using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System;
@@ -35,7 +35,7 @@ namespace FlowCore.Api.Controllers
         public async Task<IActionResult> CreateWorkflow([FromBody] Application.Features.Workflows.Commands.CreateWorkflowCommand command)
         {
             var result = await _mediator.Send(command);
-            return Ok(result);
+            return CreatedAtAction(nameof(GetWorkflowById), new { id = result.Id }, result);
         }
 
         [HttpPut("{id}")]
@@ -47,10 +47,10 @@ namespace FlowCore.Api.Controllers
         }
 
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteWorkflow(Guid id)
+        public async Task<IActionResult> DeleteWorkflow([FromRoute] Guid id, [FromQuery] Guid deletedByUserId)
         {
-            var result = await _mediator.Send(new Application.Features.Workflows.Commands.DeleteWorkflowCommand { Id = id });
-            return Ok(result);
+            var result = await _mediator.Send(new Application.Features.Workflows.Commands.DeleteWorkflowCommand { Id = id, DeletedByUserId = deletedByUserId });
+            return NoContent();
         }
     }
 }
