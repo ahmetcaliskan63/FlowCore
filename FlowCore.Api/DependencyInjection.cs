@@ -1,4 +1,4 @@
-﻿using FlowCore.Application;
+using FlowCore.Application;
 using FlowCore.Infrastructure;
 
 namespace FlowCore.Api
