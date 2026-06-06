@@ -1,4 +1,4 @@
-﻿using FlowCore.Application.Features.Roles.Commands;
+using FlowCore.Application.Features.Roles.Commands;
 using FlowCore.Application.Features.Roles.Queries;
 using MediatR;
 using Microsoft.AspNetCore.Http;
@@ -33,7 +33,7 @@ namespace FlowCore.Api.Controllers
         public async Task<IActionResult> CreateRole([FromBody] CreateRoleCommand command)
         {
             var result = await _mediator.Send(command);
-            return Ok(result);
+            return CreatedAtAction(nameof(GetRoleById), new { id = result.Id }, result);
         }
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateRole(Guid id, [FromBody] UpdateRoleCommand command)
@@ -43,11 +43,11 @@ namespace FlowCore.Api.Controllers
             return Ok(result);
         }
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteRole(Guid id)
+        public async Task<IActionResult> DeleteRole([FromRoute] Guid id, [FromQuery] Guid deletedByUserId)
         {
-            var command = new DeleteRoleCommand { Id = id };
-            var result = await _mediator.Send(command);
-            return Ok(result);
+            var command = new DeleteRoleCommand { Id = id, DeletedByUserId = deletedByUserId };
+            await _mediator.Send(command);
+            return NoContent();
         }
     }
 }
