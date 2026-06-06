@@ -16,9 +16,6 @@ namespace FlowCore.Api.Controllers
             _mediator = mediator;
         }
 
-        /// <summary>
-        /// Tüm iş akışı adımlarını listeler. WorkflowId parametresi ile belirli bir iş akışına ait adımlar filtrelenebilir.
-        /// </summary>
         [HttpGet]
         public async Task<IActionResult> GetAll([FromQuery] Guid? workflowId)
         {
@@ -27,9 +24,6 @@ namespace FlowCore.Api.Controllers
             return Ok(result);
         }
 
-        /// <summary>
-        /// ID'ye göre tek bir iş akışı adımını getirir.
-        /// </summary>
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById([FromRoute] Guid id)
         {
@@ -38,9 +32,6 @@ namespace FlowCore.Api.Controllers
             return Ok(result);
         }
 
-        /// <summary>
-        /// Yeni bir iş akışı adımı oluşturur.
-        /// </summary>
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] CreateWorkflowStepCommand command)
         {
@@ -48,9 +39,6 @@ namespace FlowCore.Api.Controllers
             return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
         }
 
-        /// <summary>
-        /// Mevcut bir iş akışı adımını günceller.
-        /// </summary>
         [HttpPut("{id}")]
         public async Task<IActionResult> Update([FromRoute] Guid id, [FromBody] UpdateWorkflowStepCommand command)
         {
@@ -59,9 +47,6 @@ namespace FlowCore.Api.Controllers
             return Ok(result);
         }
 
-        /// <summary>
-        /// Bir iş akışı adımını soft-delete ile siler.
-        /// </summary>
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete([FromRoute] Guid id, [FromQuery] Guid deletedByUserId)
         {
