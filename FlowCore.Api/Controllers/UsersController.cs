@@ -1,4 +1,4 @@
-﻿using FlowCore.Application.Features.Users.Commands;
+using FlowCore.Application.Features.Users.Commands;
 using FlowCore.Application.Features.Users.Queries;
 using MediatR;
 using Microsoft.AspNetCore.Http;
@@ -25,12 +25,7 @@ namespace FlowCore.Api.Controllers
         [HttpGet("{id}")]
         public async Task<IActionResult> Get([FromRoute] Guid id)
         {
-            var query = new GetUserByIdQuery { Id = id };
-            var result = await _mediator.Send(query);
-            if (result == null)
-            {
-                return NotFound();
-            }
+            var result = await _mediator.Send(new GetUserByIdQuery { Id = id });
             return Ok(result);
         }
         [HttpPost]
@@ -51,11 +46,11 @@ namespace FlowCore.Api.Controllers
             return Ok(result);
         }
         [HttpDelete("{id}")]
-        public async Task<IActionResult> Delete([FromRoute] Guid id)
+        public async Task<IActionResult> Delete([FromRoute] Guid id, [FromQuery] Guid deletedByUserId)
         {
-            var command = new DeleteUserCommand { Id = id };
-            var result = await _mediator.Send(command);
-            return Ok(result);
+            var command = new DeleteUserCommand { Id = id, DeletedByUserId = deletedByUserId };
+            await _mediator.Send(command);
+            return NoContent();
         }
     }
 }
