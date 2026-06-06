@@ -1,4 +1,4 @@
-﻿using FlowCore.Application.Features.Departments.Commands;
+using FlowCore.Application.Features.Departments.Commands;
 using FlowCore.Application.Features.Departments.DTOs;
 using FlowCore.Application.Features.Departments.Queries;
 using MediatR;
@@ -34,7 +34,7 @@ namespace FlowCore.Api.Controllers
         public async Task<IActionResult> CreateDepartment([FromBody] CreateDepartmentCommand command)
         {
             var result = await _mediator.Send(command);
-            return Ok(result);
+            return CreatedAtAction(nameof(GetDepartmentById), new { id = result.Id }, result);
         }
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateDepartment(Guid id, [FromBody] UpdateDepartmentCommand command)
@@ -44,11 +44,11 @@ namespace FlowCore.Api.Controllers
             return Ok(result);
         }
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteDepartment(Guid id)
+        public async Task<IActionResult> DeleteDepartment([FromRoute] Guid id, [FromQuery] Guid deletedByUserId)
         {
-            var command = new DeleteDepartmentCommand { Id = id };
-            var result = await _mediator.Send(command);
-            return Ok(result);
+            var command = new DeleteDepartmentCommand { Id = id, DeletedByUserId = deletedByUserId };
+            await _mediator.Send(command);
+            return NoContent();
         }
     }
 }
