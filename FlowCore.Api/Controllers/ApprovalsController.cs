@@ -1,4 +1,4 @@
-﻿using FlowCore.Application.Features.Approvals.Commands;
+using FlowCore.Application.Features.Approvals.Commands;
 using FlowCore.Application.Features.Approvals.DTOs;
 using FlowCore.Application.Features.Approvals.Queries;
 using MediatR;
@@ -17,21 +17,13 @@ namespace FlowCore.Api.Controllers
         {
             _mediator = mediator;
         }
-        [HttpGet]
-        public async Task<IActionResult> GetAllLeaveRequests() {
-
-            var query = new GetAllUserLeaveRequestsQuery();
-            var result = await _mediator.Send(query);
-            return Ok(result);
-        }
-        [HttpGet("userId")]
-        public async Task<IActionResult> GetLeaveRequestsByUserId(Guid userId)
+        [HttpGet("request/{requestId}")]
+        public async Task<IActionResult> GetApprovalsByRequestId([FromRoute] Guid requestId)
         {
-            var query = new GetLeaveRequestsByUserIdQuery { UserId = userId };
+            var query = new GetApprovalsByRequestIdQuery { RequestId = requestId };
             var result = await _mediator.Send(query);
             return Ok(result);
         }
-
         [HttpPost]
         public async Task<ActionResult<LeaveApprovalResultDto>> CreateLeaveApproval([FromBody] ApproveLeaveRequestCommand command)
         {
