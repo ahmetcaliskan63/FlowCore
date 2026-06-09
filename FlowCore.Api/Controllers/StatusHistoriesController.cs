@@ -1,11 +1,13 @@
 using FlowCore.Application.Features.StatusHistories.Queries;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FlowCore.Api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class StatusHistoriesController : ControllerBase
     {
         private readonly IMediator _mediator;
