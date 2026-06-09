@@ -1,12 +1,14 @@
 using FlowCore.Application.Features.Notifications.Commands;
 using FlowCore.Application.Features.Notifications.Queries;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FlowCore.Api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class NotificationsController : ControllerBase
     {
         private readonly IMediator _mediator;
