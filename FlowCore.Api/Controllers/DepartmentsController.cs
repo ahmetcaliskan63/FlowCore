@@ -2,6 +2,7 @@ using FlowCore.Application.Features.Departments.Commands;
 using FlowCore.Application.Features.Departments.DTOs;
 using FlowCore.Application.Features.Departments.Queries;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -9,6 +10,7 @@ namespace FlowCore.Api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class DepartmentsController : ControllerBase
     {
         private readonly IMediator _mediator;
@@ -44,9 +46,9 @@ namespace FlowCore.Api.Controllers
             return Ok(result);
         }
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteDepartment([FromRoute] Guid id, [FromQuery] Guid deletedByUserId)
+        public async Task<IActionResult> DeleteDepartment([FromRoute] Guid id)
         {
-            var command = new DeleteDepartmentCommand { Id = id, DeletedByUserId = deletedByUserId };
+            var command = new DeleteDepartmentCommand { Id = id };
             await _mediator.Send(command);
             return NoContent();
         }
