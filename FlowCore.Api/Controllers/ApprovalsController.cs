@@ -2,6 +2,7 @@ using FlowCore.Application.Features.Approvals.Commands;
 using FlowCore.Application.Features.Approvals.DTOs;
 using FlowCore.Application.Features.Approvals.Queries;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -9,6 +10,7 @@ namespace FlowCore.Api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class ApprovalsController : ControllerBase
     {
         private readonly IMediator _mediator;
