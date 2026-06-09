@@ -1,6 +1,7 @@
 using FlowCore.Application.Features.Roles.Commands;
 using FlowCore.Application.Features.Roles.Queries;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -8,6 +9,7 @@ namespace FlowCore.Api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class RolesController : ControllerBase
     {
         private readonly IMediator _mediator;
@@ -43,9 +45,9 @@ namespace FlowCore.Api.Controllers
             return Ok(result);
         }
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteRole([FromRoute] Guid id, [FromQuery] Guid deletedByUserId)
+        public async Task<IActionResult> DeleteRole([FromRoute] Guid id)
         {
-            var command = new DeleteRoleCommand { Id = id, DeletedByUserId = deletedByUserId };
+            var command = new DeleteRoleCommand { Id = id };
             await _mediator.Send(command);
             return NoContent();
         }
