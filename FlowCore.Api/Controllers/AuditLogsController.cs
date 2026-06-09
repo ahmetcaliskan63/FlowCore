@@ -1,11 +1,13 @@
 using FlowCore.Application.Features.AuditLogs.Queries;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FlowCore.Api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class AuditLogsController : ControllerBase
     {
         private readonly IMediator _mediator;
