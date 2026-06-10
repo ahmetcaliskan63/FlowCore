@@ -1,12 +1,14 @@
 using FlowCore.Application.Features.Tasks.Commands;
 using FlowCore.Application.Features.Tasks.Queries;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FlowCore.Api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class TasksController : ControllerBase
     {
         private readonly IMediator _mediator;
@@ -63,9 +65,9 @@ namespace FlowCore.Api.Controllers
         }
 
         [HttpDelete("{id}")]
-        public async Task<IActionResult> Delete([FromRoute] Guid id, [FromQuery] Guid deletedByUserId)
+        public async Task<IActionResult> Delete([FromRoute] Guid id)
         {
-            var command = new DeleteAppTaskCommand { Id = id, DeletedByUserId = deletedByUserId };
+            var command = new DeleteAppTaskCommand { Id = id };
             await _mediator.Send(command);
             return NoContent();
         }
