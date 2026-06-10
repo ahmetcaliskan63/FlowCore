@@ -1,12 +1,14 @@
 using FlowCore.Application.Features.WorkflowSteps.Commands;
 using FlowCore.Application.Features.WorkflowSteps.Queries;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FlowCore.Api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class WorkflowStepsController : ControllerBase
     {
         private readonly IMediator _mediator;
@@ -48,9 +50,9 @@ namespace FlowCore.Api.Controllers
         }
 
         [HttpDelete("{id}")]
-        public async Task<IActionResult> Delete([FromRoute] Guid id, [FromQuery] Guid deletedByUserId)
+        public async Task<IActionResult> Delete([FromRoute] Guid id)
         {
-            var command = new DeleteWorkflowStepCommand { Id = id, DeletedByUserId = deletedByUserId };
+            var command = new DeleteWorkflowStepCommand { Id = id };
             var result = await _mediator.Send(command);
             return NoContent();
         }
