@@ -1,6 +1,7 @@
 using FlowCore.Application.Features.Users.Commands;
 using FlowCore.Application.Features.Users.Queries;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -8,6 +9,7 @@ namespace FlowCore.Api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class UsersController : ControllerBase
     {
         private readonly IMediator _mediator;
@@ -46,11 +48,18 @@ namespace FlowCore.Api.Controllers
             return Ok(result);
         }
         [HttpDelete("{id}")]
-        public async Task<IActionResult> Delete([FromRoute] Guid id, [FromQuery] Guid deletedByUserId)
+        public async Task<IActionResult> Delete([FromRoute] Guid id)
         {
-            var command = new DeleteUserCommand { Id = id, DeletedByUserId = deletedByUserId };
+            var command = new DeleteUserCommand { Id = id };
             await _mediator.Send(command);
             return NoContent();
+        }
+
+        [HttpPost("change-password")]
+        public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordCommand command)
+        {
+            var result = await _mediator.Send(command);
+            return Ok(new { success = result });
         }
     }
 }
