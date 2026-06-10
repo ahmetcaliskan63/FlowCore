@@ -14,7 +14,6 @@ namespace FlowCore.Application.Features.Approvals.Commands
     public class ApproveLeaveRequestCommand : IRequest<LeaveApprovalResultDto>
     {
         public Guid LeaveRequestId { get; set; }
-        public Guid ApproverUserId { get; set; }
         public string Comment { get; set; } = string.Empty;
         public bool IsApproved { get; set; }
     }
@@ -25,17 +24,20 @@ namespace FlowCore.Application.Features.Approvals.Commands
         private readonly IRepository<LeaveRequest> _leaveRequestRepository;
         private readonly IRepository<User> _userRepository;
         private readonly IMediator _mediator;
+        private readonly ICurrentUserService _currentUserService;
 
         public ApproveLeaveRequestCommandHandler(
                   IRepository<Approval> approvalRepository,
                   IRepository<LeaveRequest> leaveRequestRepository,
                   IRepository<User> userRepository,
-                  IMediator mediator)
+                  IMediator mediator,
+                  ICurrentUserService currentUserService)
         {
             _approvalRepository = approvalRepository;
             _leaveRequestRepository = leaveRequestRepository;
             _userRepository = userRepository;
             _mediator = mediator;
+            _currentUserService = currentUserService;
         }
 
         public async Task<LeaveApprovalResultDto> Handle(ApproveLeaveRequestCommand request, CancellationToken cancellationToken)
@@ -48,7 +50,12 @@ namespace FlowCore.Application.Features.Approvals.Commands
                 throw new BusinessException("Onaylanmak istenen izin talebi sistemde bulunamadı.");
             }
 
-            if (request.ApproverUserId == leaveRequest.UserId)
+            if (string.IsNullOrEmpty(_currentUserService.UserId) || !Guid.TryParse(_currentUserService.UserId, out var approverUserId))
+            {
+                throw new UnauthorizedException("Geçerli bir kullanıcı oturumu bulunamadı.");
+            }
+
+            if (approverUserId == leaveRequest.UserId)
             {
                 throw new BusinessException("Personel kendi oluşturduğu izin talebini onaylayamaz veya reddedemez!");
             }
@@ -62,7 +69,7 @@ namespace FlowCore.Application.Features.Approvals.Commands
 
             var approverUser = await _userRepository.Table
                 .Include(u => u.Role)
-                .FirstOrDefaultAsync(u => u.Id == request.ApproverUserId && !u.IsDeleted, cancellationToken);
+                .FirstOrDefaultAsync(u => u.Id == approverUserId && !u.IsDeleted, cancellationToken);
 
             if (approverUser == null)
             {
@@ -124,12 +131,11 @@ namespace FlowCore.Application.Features.Approvals.Commands
                 Id = Guid.NewGuid(),
                 RequestType = WorkflowType.IzinTalebi,
                 RequestId = leaveRequest.Id,
-                ApproverByUserId = request.ApproverUserId,
+                ApproverByUserId = approverUserId,
                 Status = finalStatus,
                 Comment = request.Comment,
                 ApprovedAt = DateTime.UtcNow,
-                CreatedAt = DateTime.UtcNow,
-                CreatedBy = request.ApproverUserId
+                CreatedAt = DateTime.UtcNow
             };
             await _approvalRepository.AddAsync(approvalLog);
 
@@ -139,12 +145,12 @@ namespace FlowCore.Application.Features.Approvals.Commands
                 EntityId = leaveRequest.Id,
                 OldStatus = originalStatusStr,
                 NewStatus = finalStatus.ToString(),
-                ChangedByUserId = request.ApproverUserId
+                ChangedByUserId = approverUserId
             }, cancellationToken);
 
             await _mediator.Send(new CreateAuditLogCommand
             {
-                UserId = request.ApproverUserId,
+                UserId = approverUserId,
                 Action = "ApproveLeaveRequest",
                 EntityName = "LeaveRequest",
                 EntityId = leaveRequest.Id,
