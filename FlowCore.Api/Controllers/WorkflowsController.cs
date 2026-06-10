@@ -1,4 +1,5 @@
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System;
@@ -8,6 +9,7 @@ namespace FlowCore.Api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class WorkflowsController : ControllerBase
     {
         private readonly IMediator _mediator;
@@ -47,9 +49,9 @@ namespace FlowCore.Api.Controllers
         }
 
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteWorkflow([FromRoute] Guid id, [FromQuery] Guid deletedByUserId)
+        public async Task<IActionResult> DeleteWorkflow([FromRoute] Guid id)
         {
-            var result = await _mediator.Send(new Application.Features.Workflows.Commands.DeleteWorkflowCommand { Id = id, DeletedByUserId = deletedByUserId });
+            var result = await _mediator.Send(new Application.Features.Workflows.Commands.DeleteWorkflowCommand { Id = id });
             return NoContent();
         }
     }
