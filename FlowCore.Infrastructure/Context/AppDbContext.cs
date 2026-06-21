@@ -6,13 +6,23 @@ using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 
+using FlowCore.Core.Interfaces;
+using MediatR;
+
 namespace FlowCore.Infrastructure.Context
 {
     public class AppDbContext : DbContext
     {
+        private readonly ICurrentUserService? _currentUserService;
+        private readonly IPublisher? _publisher;
 
-        public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
+        // Design-time constructor for EF Core migrations
+        public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
+
+        public AppDbContext(DbContextOptions<AppDbContext> options, ICurrentUserService currentUserService, IPublisher publisher) : base(options)
         {
+            _currentUserService = currentUserService;
+            _publisher = publisher;
         }
 
         public DbSet<User> Users { get; set; }
@@ -48,7 +58,8 @@ namespace FlowCore.Infrastructure.Context
 
         public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
         {
-            var entries = ChangeTracker.Entries<BaseEntity>();
+            var entries = ChangeTracker.Entries<BaseEntity>().ToList();
+            var userId = _currentUserService?.UserId != null && Guid.TryParse(_currentUserService.UserId, out var parsedId) ? parsedId : Guid.Empty;
 
             foreach (var entry in entries)
             {
@@ -56,11 +67,27 @@ namespace FlowCore.Infrastructure.Context
                 {
                     case EntityState.Added:
                         entry.Entity.CreatedAt = DateTime.UtcNow;
+                        if (userId != Guid.Empty) entry.Entity.CreatedBy = userId;
                         break;
                     case EntityState.Modified:
                         entry.Entity.UpdatedAt = DateTime.UtcNow;
+                        if (userId != Guid.Empty) entry.Entity.UpdatedBy = userId;
+                        
+                        if (entry.Entity.IsDeleted && entry.Entity.DeletedAt == null)
+                        {
+                            entry.Entity.DeletedAt = DateTime.UtcNow;
+                            if (userId != Guid.Empty) entry.Entity.DeletedBy = userId;
+                        }
                         break;
                 }
+            }
+
+            var events = entries.SelectMany(x => x.Entity.DomainEvents).ToList();
+            foreach (var entry in entries) entry.Entity.ClearDomainEvents();
+
+            if (_publisher != null)
+            {
+                foreach (var domainEvent in events) await _publisher.Publish(domainEvent, cancellationToken);
             }
 
             return await base.SaveChangesAsync(cancellationToken);
