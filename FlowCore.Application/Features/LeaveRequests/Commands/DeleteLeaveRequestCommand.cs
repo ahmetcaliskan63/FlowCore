@@ -9,7 +9,6 @@ namespace FlowCore.Application.Features.LeaveRequests.Commands
     public class DeleteLeaveRequestCommand : IRequest<bool>
     {
         public Guid Id { get; set; }
-        public Guid DeletedByUserId { get; set; }
     }
 
     public class DeleteLeaveRequestCommandHandler : IRequestHandler<DeleteLeaveRequestCommand, bool>
@@ -33,8 +32,6 @@ namespace FlowCore.Application.Features.LeaveRequests.Commands
                 throw new InvalidOperationException("Yalnızca 'Onay Bekliyor' durumundaki izin talepleri silinebilir.");
 
             leaveRequest.IsDeleted = true;
-            leaveRequest.DeletedAt = DateTime.UtcNow;
-            leaveRequest.DeletedBy = request.DeletedByUserId;
 
             await _leaveRequestRepository.UpdateAsync(leaveRequest);
 
