@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using FlowCore.Application.Features.Departments.DTOs;
 using FlowCore.Core.Entities;
 using FlowCore.Core.Exceptions;
@@ -15,7 +15,6 @@ namespace FlowCore.Application.Features.Departments.Commands
     {
         public Guid Id { get; set; }
         public string DepartmentName { get; set; } = string.Empty;
-        public Guid UpdatedByUserId { get; set; }
     }
     public class UpdateDepartmentCommandHandler : IRequestHandler<UpdateDepartmentCommand, DepartmentDto>
     {
@@ -44,7 +43,6 @@ namespace FlowCore.Application.Features.Departments.Commands
             }
             department.DepartmentName = request.DepartmentName;
             department.UpdatedAt = DateTime.UtcNow;
-            department.UpdatedBy = request.UpdatedByUserId;
             await _departmentRepository.UpdateAsync(department);
 
             return _mapper.Map<DepartmentDto>(department);
