@@ -17,22 +17,28 @@ namespace FlowCore.Application.Features.Users.Commands
         public string Email { get; set; } = string.Empty;
         public Guid DepartmentId { get; set; }
         public Guid RoleId { get; set; }
-        public Guid CreatedByUserId { get; set; }
     }
 
     public class CreateUserCommandHandler : IRequestHandler<CreateUserCommand, UserDto>
     {
         private readonly IRepository<User> _userRepository;
         private readonly IRepository<Department> _departmentRepository;
-        private IRepository<Role> _roleRepository;
-        readonly IMapper _mapper;
+        private readonly IRepository<Role> _roleRepository;
+        private readonly IPasswordHasher _passwordHasher;
+        private readonly IMapper _mapper;
 
-        public CreateUserCommandHandler(IRepository<User> userRepository, IRepository<Department> departmentRepository,IMapper mapper, IRepository<Role> roleRepository)
+        public CreateUserCommandHandler(
+            IRepository<User> userRepository, 
+            IRepository<Department> departmentRepository,
+            IRepository<Role> roleRepository,
+            IPasswordHasher passwordHasher,
+            IMapper mapper)
         {
             _userRepository = userRepository;
             _departmentRepository = departmentRepository;
-            _mapper = mapper;
             _roleRepository = roleRepository;
+            _passwordHasher = passwordHasher;
+            _mapper = mapper;
         }
 
         public async Task<UserDto> Handle(CreateUserCommand request, CancellationToken cancellationToken)
@@ -59,6 +65,7 @@ namespace FlowCore.Application.Features.Users.Commands
 
             string randomPassword = Guid.NewGuid().ToString().Substring(0, 8);
             int defaultLeaveCredits = 14;
+            
             var user = new User
             {
                 Id = Guid.NewGuid(),
@@ -66,12 +73,11 @@ namespace FlowCore.Application.Features.Users.Commands
                 Email = request.Email.ToLower(),
                 DepartmentId = request.DepartmentId,
                 RoleId = request.RoleId,
-                Password = randomPassword,
+                Password = _passwordHasher.Hash(randomPassword), // Hash the password securely
                 TotalLeaveCredits = defaultLeaveCredits,
                 RemainingLeaveCredits = defaultLeaveCredits,
                 IsActive = true,
                 CreatedAt = DateTime.UtcNow,
-                CreatedBy = request.CreatedByUserId,
                 IsDeleted = false
             };
             await _userRepository.AddAsync(user);
