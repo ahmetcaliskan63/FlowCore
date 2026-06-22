@@ -15,7 +15,6 @@ namespace FlowCore.Application.Features.Users.Commands
         public string Email { get; set; } = string.Empty;
         public Guid? DepartmentId { get; set; }
         public Guid? RoleId { get; set; }
-        public Guid UpdatedByUserId { get; set; }
     }
 
     public class UpdateUserCommandHandler : IRequestHandler<UpdateUserCommand, UserDto>
@@ -69,8 +68,6 @@ namespace FlowCore.Application.Features.Users.Commands
 
             user.FullName = request.FullName;
             user.Email = request.Email.ToLower();
-            user.UpdatedAt = DateTime.UtcNow;
-            user.UpdatedBy = request.UpdatedByUserId;
 
             await _userRepository.UpdateAsync(user);
 
