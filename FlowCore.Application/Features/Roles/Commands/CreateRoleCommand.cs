@@ -12,7 +12,6 @@ namespace FlowCore.Application.Features.Roles.Commands
     {
         public string RoleName { get; set; } = string.Empty;
         public string RoleDescription { get; set; } = string.Empty;
-        public Guid CreatedByUserId { get; set; }
     }
 
     public class CreateRoleCommandHandler : IRequestHandler<CreateRoleCommand, RoleDto>
@@ -40,7 +39,6 @@ namespace FlowCore.Application.Features.Roles.Commands
                 Name = request.RoleName,
                 Description = request.RoleDescription,
                 CreatedAt = DateTime.UtcNow,
-                CreatedBy = request.CreatedByUserId,
                 IsDeleted = false
             };
 
