@@ -9,7 +9,6 @@ namespace FlowCore.Application.Features.Users.Commands
     public class DeleteUserCommand : IRequest<bool>
     {
         public Guid Id { get; set; }
-        public Guid DeletedByUserId { get; set; }
     }
 
     public class DeleteUserCommandHandler : IRequestHandler<DeleteUserCommand, bool>
@@ -43,8 +42,6 @@ namespace FlowCore.Application.Features.Users.Commands
 
             user.IsActive = false;
             user.IsDeleted = true;
-            user.DeletedAt = DateTime.UtcNow;
-            user.DeletedBy = request.DeletedByUserId;
 
             await _userRepository.UpdateAsync(user);
 
