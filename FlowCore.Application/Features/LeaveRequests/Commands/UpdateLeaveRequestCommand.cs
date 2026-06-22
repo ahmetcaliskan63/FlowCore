@@ -12,7 +12,6 @@ namespace FlowCore.Application.Features.LeaveRequests.Commands
         public DateTime StartDate { get; set; }
         public DateTime EndDate { get; set; }
         public string Reason { get; set; } = string.Empty;
-        public Guid UpdatedByUserId { get; set; }
     }
 
     public class UpdateLeaveRequestCommandHandler : IRequestHandler<UpdateLeaveRequestCommand, Guid>
@@ -57,7 +56,6 @@ namespace FlowCore.Application.Features.LeaveRequests.Commands
             leaveRequest.EndDate = request.EndDate;
             leaveRequest.Reason = request.Reason;
             leaveRequest.UpdatedAt = DateTime.UtcNow;
-            leaveRequest.UpdatedBy = request.UpdatedByUserId;
 
             await _leaveRequestRepository.UpdateAsync(leaveRequest);
 
