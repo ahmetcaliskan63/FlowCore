@@ -1,4 +1,4 @@
-﻿using FlowCore.Core.Entities;
+using FlowCore.Core.Entities;
 using FlowCore.Core.Exceptions;
 using FlowCore.Core.Interfaces;
 using MediatR;
@@ -9,7 +9,6 @@ namespace FlowCore.Application.Features.Departments.Commands
     public class DeleteDepartmentCommand: IRequest<bool>
     {
         public Guid Id { get; set; }
-        public Guid DeletedByUserId { get; set; }
     }
     public class DeleteDepartmentCommandHandler : IRequestHandler<DeleteDepartmentCommand, bool>
     {
@@ -33,8 +32,6 @@ namespace FlowCore.Application.Features.Departments.Commands
                 throw new BusinessException("Bu departmana bağlı aktif çalışan personeller bulunmaktadır. Departmanı silebilmek için önce personellerin departmanını değiştirmeniz gerekmektedir.");
             }
             department.IsDeleted = true;
-            department.DeletedAt = DateTime.UtcNow;
-            department.DeletedBy = request.DeletedByUserId;
             await _departmentRepository.UpdateAsync(department);
             return true;
         }
