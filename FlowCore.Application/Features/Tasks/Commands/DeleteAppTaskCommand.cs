@@ -8,7 +8,6 @@ namespace FlowCore.Application.Features.Tasks.Commands
     public class DeleteAppTaskCommand : IRequest<bool>
     {
         public Guid Id { get; set; }
-        public Guid DeletedByUserId { get; set; }
     }
 
     public class DeleteAppTaskCommandHandler : IRequestHandler<DeleteAppTaskCommand, bool>
@@ -32,8 +31,6 @@ namespace FlowCore.Application.Features.Tasks.Commands
                 throw new InvalidOperationException("Devam eden bir görev silinemez. Önce görevi iptal edin veya tamamlayın.");
 
             task.IsDeleted = true;
-            task.DeletedAt = DateTime.UtcNow;
-            task.DeletedBy = request.DeletedByUserId;
 
             await _taskRepository.UpdateAsync(task);
 
