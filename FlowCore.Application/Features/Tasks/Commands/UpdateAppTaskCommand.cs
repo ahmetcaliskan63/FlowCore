@@ -1,3 +1,5 @@
+using FlowCore.Core.Exceptions;
+using FlowCore.Core.Constants;
 using FlowCore.Application.Features.Tasks.DTOs;
 using FlowCore.Core.Entities;
 using FlowCore.Core.Enums;
@@ -15,20 +17,22 @@ namespace FlowCore.Application.Features.Tasks.Commands
         public Guid? AssignedToUserId { get; set; }
         public string Priority { get; set; } = string.Empty;
         public DateTime? DueDate { get; set; }
-        public Guid UpdatedByUserId { get; set; }
     }
 
     public class UpdateAppTaskCommandHandler : IRequestHandler<UpdateAppTaskCommand, AppTaskDto>
     {
         private readonly IRepository<AppTask> _taskRepository;
         private readonly IRepository<User> _userRepository;
+        private readonly ICurrentUserService _currentUserService;
 
         public UpdateAppTaskCommandHandler(
             IRepository<AppTask> taskRepository,
-            IRepository<User> userRepository)
+            IRepository<User> userRepository,
+            ICurrentUserService currentUserService)
         {
             _taskRepository = taskRepository;
             _userRepository = userRepository;
+            _currentUserService = currentUserService;
         }
 
         public async Task<AppTaskDto> Handle(UpdateAppTaskCommand request, CancellationToken cancellationToken)
@@ -42,6 +46,28 @@ namespace FlowCore.Application.Features.Tasks.Commands
 
             if (task.Status == AppTaskStatus.Tamamlandi || task.Status == AppTaskStatus.IptalEdildi)
                 throw new InvalidOperationException("Tamamlanmış veya iptal edilmiş görevler güncellenemez.");
+
+            if (string.IsNullOrEmpty(_currentUserService.UserId) || !Guid.TryParse(_currentUserService.UserId, out var currentUserId))
+            {
+                throw new UnauthorizedException("Geçerli bir kullanıcı oturumu bulunamadı.");
+            }
+
+            var currentUser = await _userRepository.Table
+                .Include(u => u.Role)
+                .FirstOrDefaultAsync(u => u.Id == currentUserId && !u.IsDeleted, cancellationToken);
+
+            if (currentUser == null)
+            {
+                throw new UnauthorizedException("Geçerli bir kullanıcı oturumu bulunamadı.");
+            }
+
+            bool isAdmin = currentUser.Role?.Name == SystemRoles.Admin;
+            bool isCreator = task.CreatedByUserId == currentUserId;
+
+            if (!isCreator && !isAdmin)
+            {
+                throw new UnauthorizedException("Görev detaylarını sadece görevi oluşturan kişi veya sistem yöneticisi düzenleyebilir.");
+            }
 
             if (!Enum.TryParse(request.Priority, true, out TaskPriority validatedPriority))
                 throw new Exception($"Geçersiz öncelik seviyesi: '{request.Priority}'. Geçerli değerler: Dusuk, Orta, Yuksek, Acil");
@@ -62,7 +88,6 @@ namespace FlowCore.Application.Features.Tasks.Commands
             task.Priority = validatedPriority;
             task.DueDate = request.DueDate;
             task.UpdatedAt = DateTime.UtcNow;
-            task.UpdatedBy = request.UpdatedByUserId;
 
             await _taskRepository.UpdateAsync(task);
 
