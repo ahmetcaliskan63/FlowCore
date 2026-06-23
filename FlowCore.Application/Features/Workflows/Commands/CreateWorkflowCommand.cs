@@ -1,4 +1,4 @@
-﻿using FlowCore.Application.Features.Workflows.DTOs;
+using FlowCore.Application.Features.Workflows.DTOs;
 using FlowCore.Core.Entities;
 using FlowCore.Core.Enums; // WorkflowType enum'ı için eklendi
 using FlowCore.Core.Interfaces;
@@ -15,7 +15,6 @@ namespace FlowCore.Application.Features.Workflows.Commands
         public string WorkflowName { get; set; } = string.Empty;
         public string Type { get; set; } = string.Empty;
         public bool IsActive { get; set; }
-        public Guid CreatedByUserId { get; set; }
     }
 
     public class CreateWorkflowCommandHandler : IRequestHandler<CreateWorkflowCommand, WorkflowDto>
@@ -49,7 +48,6 @@ namespace FlowCore.Application.Features.Workflows.Commands
                 Type = validatedType,
                 IsActive = request.IsActive,
                 CreatedAt = DateTime.UtcNow,
-                CreatedBy = request.CreatedByUserId,
                 IsDeleted = false
             };
 
