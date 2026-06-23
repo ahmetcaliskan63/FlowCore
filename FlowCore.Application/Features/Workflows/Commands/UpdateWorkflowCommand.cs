@@ -1,4 +1,4 @@
-﻿using FlowCore.Application.Features.Workflows.DTOs;
+using FlowCore.Application.Features.Workflows.DTOs;
 using FlowCore.Core.Entities;
 using FlowCore.Core.Enums;
 using FlowCore.Core.Interfaces;
@@ -15,7 +15,6 @@ namespace FlowCore.Application.Features.Workflows.Commands
         public Guid Id { get; set; }
         public string Name { get; set; } = string.Empty;
         public string Type { get; set; } = string.Empty;
-        public Guid UpdatedByUserId { get; set; }
     }
 
     public class UpdateWorkflowCommandHandler : IRequestHandler<UpdateWorkflowCommand, WorkflowDto>
@@ -53,7 +52,6 @@ namespace FlowCore.Application.Features.Workflows.Commands
             workflow.Name = request.Name;
             workflow.Type = workflowType;
             workflow.UpdatedAt = DateTime.UtcNow;
-            workflow.UpdatedBy = request.UpdatedByUserId;
 
             await _workflowRepository.UpdateAsync(workflow);
 
