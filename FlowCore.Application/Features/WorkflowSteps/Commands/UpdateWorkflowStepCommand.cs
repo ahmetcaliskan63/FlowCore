@@ -13,7 +13,6 @@ namespace FlowCore.Application.Features.WorkflowSteps.Commands
         public int StepOrder { get; set; }
         public Guid? RequiredRoleId { get; set; }
         public string ActionType { get; set; } = string.Empty;
-        public Guid UpdatedByUserId { get; set; }
     }
 
     public class UpdateWorkflowStepCommandHandler : IRequestHandler<UpdateWorkflowStepCommand, WorkflowStepsDTO>
@@ -49,7 +48,6 @@ namespace FlowCore.Application.Features.WorkflowSteps.Commands
             step.RequiredRoleId = request.RequiredRoleId;
             step.ActionType = validatedActionType;
             step.UpdatedAt = DateTime.UtcNow;
-            step.UpdatedBy = request.UpdatedByUserId;
 
             await _workflowStepRepository.UpdateAsync(step);
 
