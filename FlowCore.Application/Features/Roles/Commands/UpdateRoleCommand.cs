@@ -13,7 +13,6 @@ namespace FlowCore.Application.Features.Roles.Commands
         public Guid Id { get; set; }
         public string RoleName { get; set; } = string.Empty;
         public string RoleDescription { get; set; } = string.Empty;
-        public Guid UpdatedByUserId { get; set; }
     }
 
     public class UpdateRoleCommandHandler : IRequestHandler<UpdateRoleCommand, RoleDto>
@@ -44,7 +43,6 @@ namespace FlowCore.Application.Features.Roles.Commands
             role.Name = request.RoleName;
             role.Description = request.RoleDescription;
             role.UpdatedAt = DateTime.UtcNow;
-            role.UpdatedBy = request.UpdatedByUserId;
 
             await _roleRepository.UpdateAsync(role);
 
