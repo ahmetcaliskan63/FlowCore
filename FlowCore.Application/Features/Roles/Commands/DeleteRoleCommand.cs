@@ -9,7 +9,6 @@ namespace FlowCore.Application.Features.Roles.Commands
     public class DeleteRoleCommand : IRequest<bool>
     {
         public Guid Id { get; set; }
-        public Guid DeletedByUserId { get; set; }
     }
 
     public class DeleteRoleCommandHandler : IRequestHandler<DeleteRoleCommand, bool>
@@ -38,8 +37,6 @@ namespace FlowCore.Application.Features.Roles.Commands
                 throw new BusinessException("Bu role atanmış aktif kullanıcılar bulunmaktadır. Önce kullanıcıların rollerini güncelleyin.");
 
             role.IsDeleted = true;
-            role.DeletedAt = DateTime.UtcNow;
-            role.DeletedBy = request.DeletedByUserId;
 
             await _roleRepository.UpdateAsync(role);
 
