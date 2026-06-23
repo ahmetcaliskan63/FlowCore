@@ -8,7 +8,6 @@ namespace FlowCore.Application.Features.WorkflowSteps.Commands
     public class DeleteWorkflowStepCommand : IRequest<bool>
     {
         public Guid Id { get; set; }
-        public Guid DeletedByUserId { get; set; }
     }
 
     public class DeleteWorkflowStepCommandHandler : IRequestHandler<DeleteWorkflowStepCommand, bool>
@@ -29,8 +28,6 @@ namespace FlowCore.Application.Features.WorkflowSteps.Commands
                 throw new Exception("Silinmek istenen aktif bir iş akışı adımı bulunamadı.");
 
             step.IsDeleted = true;
-            step.DeletedAt = DateTime.UtcNow;
-            step.DeletedBy = request.DeletedByUserId;
 
             await _workflowStepRepository.UpdateAsync(step);
 
