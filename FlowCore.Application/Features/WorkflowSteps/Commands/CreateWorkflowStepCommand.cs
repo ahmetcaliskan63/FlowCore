@@ -13,7 +13,6 @@ namespace FlowCore.Application.Features.WorkflowSteps.Commands
         public int StepOrder { get; set; }
         public Guid? RequiredRoleId { get; set; }
         public string ActionType { get; set; } = string.Empty;
-        public Guid CreatedByUserId { get; set; }
     }
 
     public class CreateWorkflowStepCommandHandler : IRequestHandler<CreateWorkflowStepCommand, WorkflowStepsDTO>
@@ -56,7 +55,6 @@ namespace FlowCore.Application.Features.WorkflowSteps.Commands
                 RequiredRoleId = request.RequiredRoleId,
                 ActionType = validatedActionType,
                 CreatedAt = DateTime.UtcNow,
-                CreatedBy = request.CreatedByUserId,
                 IsDeleted = false
             };
 
